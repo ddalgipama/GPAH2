@@ -62,10 +62,25 @@ export interface Report {
   timestamp: string;
 }
 
+export interface ContentBlock {
+  id: string;
+  type: 'text' | 'image';
+  value: string;
+}
+
 export interface ContentPage {
   title: string;
-  content: string;
-  images?: string[];
+  blocks: ContentBlock[];
+  content?: string; // Legacy support
+  images?: string[]; // Legacy support
+}
+
+export interface ServiceMenu {
+  id: string;
+  title: string;
+  title_en: string;
+  icon: string;
+  desc: string;
 }
 
 export interface AppState {
@@ -82,6 +97,7 @@ export interface AppState {
   faqs: FAQItem[];
   staff: StaffContact[];
   reports: Report[];
+  serviceMenus: ServiceMenu[];
   contentPages: Record<string, ContentPage>;
   survey1: any[];
   survey2: any[];

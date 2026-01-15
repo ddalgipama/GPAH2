@@ -8,25 +8,18 @@ interface Props {
   onDetail: (id: string) => void;
 }
 
-const DormServices: React.FC<Props> = ({ onBack, onDetail }) => {
-  const services = [
-    { id: 'cleaning', title: '청소 (Cleaning)', icon: '🧹', desc: 'Weekly cleaning schedule' },
-    { id: 'laundry', title: '세탁 (Laundry)', icon: '🧺', desc: 'Washing & Drying rules' },
-    { id: 'salon', title: '미용 (Salon)', icon: '💇‍♂️', desc: 'Haircut appointments' },
-    { id: 'shoe', title: '구두 (Shoe Care)', icon: '👞', desc: 'Polishing service' },
-    { id: 'photo', title: '사진촬영 (Photo)', icon: '📸', desc: 'Graduation photoshoot' },
-    { id: 'dry-cleaning', title: '드라이클리닝 (Dry)', icon: '👔', desc: 'External cleaning service' },
-  ];
+const DormServices: React.FC<Props> = ({ state, onBack, onDetail }) => {
+  const services = state.serviceMenus || [];
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+      <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10 shadow-sm">
         <button onClick={onBack} className="p-2 text-blue-600 font-medium">← Back</button>
         <h1 className="text-lg font-bold">Dormitory Services</h1>
         <div className="w-10"></div>
       </header>
 
-      <div className="p-6">
+      <div className="p-6 overflow-y-auto no-scrollbar pb-20">
         <div className="grid grid-cols-2 gap-4">
           {services.map(s => (
             <button
@@ -39,6 +32,12 @@ const DormServices: React.FC<Props> = ({ onBack, onDetail }) => {
               <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest">{s.desc}</p>
             </button>
           ))}
+          
+          {services.length === 0 && (
+            <div className="col-span-2 py-20 text-center">
+              <p className="text-gray-400 text-sm italic">등록된 서비스가 없습니다.</p>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 bg-blue-600 p-8 rounded-3xl text-white shadow-xl shadow-blue-100">

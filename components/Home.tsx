@@ -32,15 +32,17 @@ const Home: React.FC<HomeProps> = ({ state, onNavigate }) => {
   const dinner = todayMeals.filter(m => m.meal === 'DINNER').sort((a, b) => a.order - b.order);
 
   const menuItems = [
-    { id: 'gimpo-hall', title_ko: '김포대회회관 소개', title_en: 'Gimpo Hall', icon: '🏛️' },
+    { id: 'gimpo-hall', title_ko: '김포대회회관 소개', title_en: 'GIMPO ASSEMBLY HALL', icon: '🏛️' },
     { id: 'dorm-services', title_ko: '숙소 관리 & 서비스', title_en: 'Dorm Services', icon: '🏠' },
-    { id: 'meal-plan', title_ko: 'Meal Plan', title_en: 'Meal Plan', icon: '🍱' },
-    { id: 'calendar', title_ko: 'Calendar', title_en: 'Calendar', icon: '📅' },
-    { id: 'graduation', title_ko: 'Graduation', title_en: 'Graduation', icon: '🎓' },
-    { id: 'faq', title_ko: 'FAQ', title_en: 'FAQ', icon: '❓' },
-    { id: 'explore-gimpo', title_ko: '김포 이야기', title_en: 'Explore Gimpo', icon: '🗺️' },
-    { id: 'contact-us', title_ko: 'Contact Us', title_en: 'Contact Us', icon: '📞' },
+    { id: 'meal-plan', title_ko: '식단 안내', title_en: 'Meal Plan', icon: '🍱' },
+    { id: 'calendar', title_ko: '일정표', title_en: 'Calendar', icon: '📅' },
+    { id: 'graduation', title_ko: '졸업식 안내', title_en: 'Graduation', icon: '🎓' },
+    { id: 'faq', title_ko: '자주 묻는 질문', title_en: 'FAQ', icon: '❓' },
+    { id: 'contact-us', title_ko: '문의하기', title_en: 'Contact Us', icon: '📞' },
   ];
+
+  const gridItems = menuItems.filter(item => item.id !== 'contact-us');
+  const fullWidthItem = menuItems.find(item => item.id === 'contact-us');
 
   return (
     <div className="flex flex-col h-full">
@@ -51,11 +53,11 @@ const Home: React.FC<HomeProps> = ({ state, onNavigate }) => {
           <h1 className="text-3xl font-black text-gray-900 leading-tight">{state.headerLine2}</h1>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => onNavigate('admin-login')} className="p-2 rounded-full bg-gray-100 active:bg-gray-200 transition-colors">
-            🔐
-          </button>
           <button onClick={() => setShowNotice(true)} className="p-2 rounded-full bg-blue-50 text-blue-600 active:bg-blue-100 transition-colors">
             📣
+          </button>
+          <button onClick={() => onNavigate('admin-login')} className="p-2 rounded-full bg-gray-100 active:bg-gray-200 transition-colors">
+            🔐
           </button>
         </div>
       </div>
@@ -130,7 +132,7 @@ const Home: React.FC<HomeProps> = ({ state, onNavigate }) => {
 
         {/* Main Grid Menu */}
         <div className="grid grid-cols-2 gap-3 pt-4">
-          {menuItems.map(item => (
+          {gridItems.map(item => (
             <button
               key={item.id}
               onClick={() => onNavigate(item.id as AppView)}
@@ -143,6 +145,20 @@ const Home: React.FC<HomeProps> = ({ state, onNavigate }) => {
               </div>
             </button>
           ))}
+          
+          {fullWidthItem && (
+            <button
+              key={fullWidthItem.id}
+              onClick={() => onNavigate(fullWidthItem.id as AppView)}
+              className="col-span-2 bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-5 shadow-sm active:scale-95 transition-all text-left"
+            >
+              <span className="text-3xl">{fullWidthItem.icon}</span>
+              <div>
+                <p className="text-sm font-bold text-gray-800 leading-tight">{fullWidthItem.title_ko}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">{fullWidthItem.title_en}</p>
+              </div>
+            </button>
+          )}
         </div>
       </div>
 

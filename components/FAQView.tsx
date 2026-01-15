@@ -53,7 +53,9 @@ const FAQView: React.FC<Props> = ({ state, onBack }) => {
         <div className="bg-gray-900 rounded-[40px] p-8 text-white mt-12">
           <p className="text-xs opacity-60 uppercase font-black tracking-widest mb-1">Still need help?</p>
           <p className="text-lg font-bold mb-6">원하는 답변을 찾지 못하셨나요?</p>
-          <button className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-blue-900/40">Contact Us</button>
+          <button className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-900/40 active:scale-[0.98] transition-all">
+            Contact Us
+          </button>
         </div>
       </div>
     </div>

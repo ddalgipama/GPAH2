@@ -60,8 +60,8 @@ const App: React.FC = () => {
   const renderView = () => {
     // Fallback if contentPage is missing
     const getSafePage = (id: string | null) => {
-      if (!id) return { title: 'Not Found', content: 'No content available.' };
-      return state.contentPages[id] || { title: 'Not Found', content: 'Content is under preparation.' };
+      if (!id) return { title: 'Not Found', blocks: [] };
+      return state.contentPages[id] || { title: 'Not Found', blocks: [{ type: 'text', value: 'Content is under preparation.' }] };
     };
 
     switch (view) {
@@ -80,19 +80,36 @@ const App: React.FC = () => {
       case 'dorm-detail':
         const page = getSafePage(activeDormId);
         return (
-          <div className="min-h-screen bg-white pb-20">
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10 shadow-sm">
+          <div className="min-h-screen bg-white pb-20 overflow-y-auto no-scrollbar relative">
+            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-20 shadow-sm">
               <button onClick={() => navigateTo('dorm-services')} className="text-blue-600 font-medium flex items-center px-2 py-1 active:bg-blue-50 rounded-lg">
                 <span className="mr-1">←</span> Back
               </button>
-              <h1 className="text-lg font-bold">{page.title}</h1>
+              <h1 className="text-lg font-bold text-gray-900">{page.title}</h1>
               <div className="w-10"></div>
             </header>
-            <div className="p-6 prose max-w-none">
-              <div className="text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: page.content }} />
-              {page.images?.map((img, i) => (
-                <img key={i} src={img} alt="content" className="rounded-2xl mt-6 w-full object-cover shadow-lg border" />
-              ))}
+            <div className="p-6 pt-8 space-y-6">
+              {page.blocks && page.blocks.length > 0 ? (
+                page.blocks.map((block, i) => (
+                  <div key={block.id || i} className="animate-in fade-in duration-500 slide-in-from-bottom-2">
+                    {block.type === 'text' ? (
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">{block.value}</p>
+                    ) : (
+                      block.value && (
+                        <img src={block.value} alt="content" className="rounded-3xl w-full object-cover shadow-xl border border-gray-100" />
+                      )
+                    )}
+                  </div>
+                ))
+              ) : (
+                // Legacy fallback
+                <>
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium" dangerouslySetInnerHTML={{ __html: page.content || '' }} />
+                  {page.images?.map((img, i) => (
+                    <img key={i} src={img} alt="content" className="rounded-3xl mt-6 w-full object-cover shadow-xl border border-gray-100" />
+                  ))}
+                </>
+              )}
             </div>
           </div>
         );
