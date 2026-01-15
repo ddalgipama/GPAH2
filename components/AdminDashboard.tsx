@@ -65,6 +65,84 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
     (window as any).XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  const downloadTemplate = () => {
+    try {
+      if (!(window as any).XLSX) {
+        alert("엑셀 라이브러리를 로드하는 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      // MealPlan Template Structure
+      const mealExample = [
+        { 
+          date: '2026-01-01', 
+          meal: 'LUNCH', 
+          order: 1, 
+          menu_ko: '비빔밥', 
+          menu_en: 'Bibimbap', 
+          spicy: 'TRUE', 
+          seafood: 'FALSE', 
+          peanut: 'FALSE', 
+          wheat: 'FALSE' 
+        },
+        { 
+          date: '2026-01-01', 
+          meal: 'DINNER', 
+          order: 1, 
+          menu_ko: '불고기', 
+          menu_en: 'Bulgogi', 
+          spicy: 'FALSE', 
+          seafood: 'FALSE', 
+          peanut: 'FALSE', 
+          wheat: 'FALSE' 
+        }
+      ];
+
+      // Calendar Template Structure
+      const calendarExample = [
+        { 
+          date: '2026-01-01', 
+          type: 'ARRIVAL', 
+          time: '14:00', 
+          location: 'Hall Lobby', 
+          title_ko: '입소 환영회', 
+          title_en: 'Welcome Reception', 
+          description_ko: '신입생 환영 및 방 배정', 
+          description_en: 'Welcome and room assignment' 
+        }
+      ];
+
+      const wb = (window as any).XLSX.utils.book_new();
+      
+      const wsMeals = (window as any).XLSX.utils.json_to_sheet(mealExample);
+      const wsEvents = (window as any).XLSX.utils.json_to_sheet(calendarExample);
+
+      (window as any).XLSX.utils.book_append_sheet(wb, wsMeals, "MealPlan");
+      (window as any).XLSX.utils.book_append_sheet(wb, wsEvents, "Calendar");
+
+      // File name with current date
+      const dateStr = new Date().toISOString().split('T')[0];
+      (window as any).XLSX.writeFile(wb, `Gimpo_All_in_One_Template_${dateStr}.xlsx`);
+    } catch (error) {
+      console.error("Excel download error:", error);
+      alert("엑셀 다운로드 중 오류가 발생했습니다.");
+    }
+  };
+
+  const deleteService = (id: string) => {
+    if (window.confirm('이 서비스 메뉴를 삭제하시겠습니까? 관련된 상세 페이지 내용도 함께 삭제됩니다.')) {
+      const newServices = state.serviceMenus.filter(s => s.id !== id);
+      const newPages = { ...state.contentPages };
+      delete newPages[id];
+      
+      updateState({ 
+        serviceMenus: newServices,
+        contentPages: newPages
+      });
+      setShowSuccessModal(true);
+    }
+  };
+
   const moveBlock = (pageId: string, index: number, direction: 'up' | 'down') => {
     const page = state.contentPages[pageId];
     if (!page) return;
@@ -192,7 +270,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
               </div>
             </section>
 
-            {/* ESSENTIAL KOREAN PHRASES CRUD (New Addition) */}
+            {/* ESSENTIAL KOREAN PHRASES CRUD */}
             <section className="space-y-4">
                <div className="flex justify-between items-center">
                   <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Essential Korean Phrases</h3>
@@ -217,7 +295,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
           </div>
         )}
 
-        {/* Tab 3: Dormitory Services CRUD (Activated) */}
+        {/* Tab 3: Dormitory Services CRUD */}
         {tab === 'services' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -249,16 +327,15 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setEditingService(s)} className="bg-gray-100 text-gray-600 text-[10px] font-black px-3 py-2 rounded-xl">Edit Title/Icon</button>
-                        <button onClick={() => {
-                           if(window.confirm('정말 삭제하시겠습니까?')) {
-                             updateState({ serviceMenus: state.serviceMenus.filter(x => x.id !== s.id) });
-                           }
-                        }} className="bg-red-50 text-red-500 text-[10px] font-black px-3 py-2 rounded-xl">Del</button>
+                        <button onClick={() => deleteService(s.id)} className="bg-red-50 text-red-500 text-[10px] font-black px-3 py-2 rounded-xl">Del</button>
                       </div>
                    </div>
                    <button onClick={() => setEditingContentId(s.id)} className="w-full bg-blue-600 text-white text-[10px] font-black py-4 rounded-2xl shadow-lg shadow-blue-50">Edit Page Content & Order</button>
                  </div>
                ))}
+               {state.serviceMenus.length === 0 && (
+                 <div className="py-20 text-center bg-white border-2 border-dashed rounded-[40px] text-gray-300 font-bold italic">등록된 서비스가 없습니다.</div>
+               )}
             </div>
           </div>
         )}
@@ -278,8 +355,8 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                 <h4 className="font-black">Unified Excel Management</h4>
                 <p className="text-xs font-medium text-gray-500 leading-relaxed">식단표와 일정표를 하나의 엑셀 파일(별도 시트)로 통합 관리합니다.</p>
                 <div className="space-y-4">
-                  <button className="w-full bg-gray-50 border border-dashed py-5 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest">Download All-in-One Template</button>
-                  <label className="block w-full bg-blue-600 text-white py-5 rounded-2xl text-center text-xs font-black uppercase cursor-pointer shadow-lg shadow-blue-100">
+                  <button onClick={downloadTemplate} className="w-full bg-gray-50 border border-dashed py-5 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 active:scale-[0.98] transition-all">Download All-in-One Template</button>
+                  <label className="block w-full bg-blue-600 text-white py-5 rounded-2xl text-center text-xs font-black uppercase cursor-pointer shadow-lg shadow-blue-100 active:scale-[0.98] transition-all">
                     Upload All-in-One Excel
                     <input type="file" className="hidden" accept=".xlsx,.xls" />
                   </label>
@@ -371,7 +448,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
           </div>
         )}
 
-        {/* Tab 6: FAQ (Activated) */}
+        {/* Tab 6: FAQ */}
         {tab === 'faq' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -391,11 +468,14 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                   </div>
                 </div>
               ))}
+              {state.faqs.length === 0 && (
+                <div className="py-20 text-center bg-white border-2 border-dashed rounded-[40px] text-gray-300 font-bold italic">등록된 FAQ가 없습니다.</div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 7: Inquiry & Contacts (Activated) */}
+        {/* Tab 7: Inquiry & Contacts */}
         {tab === 'inquiry' && (
           <div className="space-y-10">
             <section className="space-y-4">
@@ -420,14 +500,14 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                <h3 className="text-[10px] font-black text-red-600 uppercase tracking-widest">Emergency Contact (24/7)</h3>
                <div className="bg-white p-6 rounded-[32px] border border-red-100 shadow-sm">
                   <textarea className="w-full p-4 bg-gray-50 rounded-2xl text-sm font-black min-h-[80px]" value={state.emergencyText} onChange={e => updateState({ emergencyText: e.target.value })} />
-                  <button onClick={handleApplyChanges} className="w-full mt-4 bg-red-600 text-white py-4 rounded-2xl text-xs font-black uppercase">비상 연락처 저장</button>
+                  <button onClick={handleApplyChanges} className="w-full mt-4 bg-red-600 text-white py-4 rounded-2xl text-xs font-black uppercase shadow-lg shadow-red-100">비상 연락처 저장</button>
                </div>
             </section>
 
             <section className="space-y-4">
                <div className="flex justify-between items-center">
                 <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">User Reports (문의내역)</h3>
-                <button onClick={() => exportToExcel(state.reports, "Gimpo_Inquiry_Reports")} className="bg-gray-900 text-white text-[10px] font-black px-4 py-2 rounded-full uppercase">📊 Export Excel</button>
+                <button onClick={() => exportToExcel(state.reports, "Gimpo_Inquiry_Reports")} className="bg-gray-900 text-white text-[10px] font-black px-4 py-2 rounded-full uppercase shadow-lg">📊 Export Excel</button>
               </div>
               <div className="space-y-4">
                 {state.reports.map(r => (
@@ -536,7 +616,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                <input className="flex-1 p-4 bg-gray-50 border rounded-2xl text-sm font-bold" value={editingService.title} onChange={e => setEditingService({...editingService, title: e.target.value})} required />
             </div>
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Title (EN)" value={editingService.title_en} onChange={e => setEditingService({...editingService, title_en: e.target.value})} required />
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">메뉴 저장</button><button type="button" onClick={() => setEditingService(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">메뉴 저장</button><button type="button" onClick={() => setEditingService(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
           </form>
         </div>
       )}
@@ -565,19 +645,8 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                <input className="flex-1 p-4 bg-gray-50 border rounded-2xl text-sm font-bold" value={editingGradMenu.title} onChange={e => setEditingGradMenu({...editingGradMenu, title: e.target.value})} required />
             </div>
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Title (EN)" value={editingGradMenu.title_en} onChange={e => setEditingGradMenu({...editingGradMenu, title_en: e.target.value})} required />
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">저장</button><button type="button" onClick={() => setEditingGradMenu(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">저장</button><button type="button" onClick={() => setEditingGradMenu(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
           </form>
-        </div>
-      )}
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[40px] w-full max-w-xs p-8 flex flex-col items-center text-center shadow-2xl scale-in-center">
-            <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">✓</div>
-            <h3 className="text-xl font-black text-gray-900 mb-2">저장되었습니다.</h3>
-            <button onClick={() => setShowSuccessModal(false)} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-blue-100 tap-active">확인</button>
-          </div>
         </div>
       )}
 
@@ -591,12 +660,12 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
             updateState({ staff: newList });
             setEditingStaff(null);
             setShowSuccessModal(true);
-          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl">
+          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl scale-in-center">
             <h3 className="text-lg font-black">Staff Member Editor</h3>
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Name" value={editingStaff.name} onChange={e => setEditingStaff({...editingStaff, name: e.target.value})} required />
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Role" value={editingStaff.role} onChange={e => setEditingStaff({...editingStaff, role: e.target.value})} required />
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Phone" value={editingStaff.phone} onChange={e => setEditingStaff({...editingStaff, phone: e.target.value})} required />
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">Save</button><button type="button" onClick={() => setEditingStaff(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">Cancel</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">Save</button><button type="button" onClick={() => setEditingStaff(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">Cancel</button></div>
           </form>
         </div>
       )}
@@ -611,12 +680,12 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
             updateState({ faqs: newList });
             setEditingFaq(null);
             setShowSuccessModal(true);
-          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl scale-in-center overflow-y-auto max-h-[90vh]">
             <h3 className="text-lg font-black">FAQ Item Editor</h3>
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Category" value={editingFaq.category} onChange={e => setEditingFaq({...editingFaq, category: e.target.value})} required />
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Question" value={editingFaq.question} onChange={e => setEditingFaq({...editingFaq, question: e.target.value})} required />
             <textarea className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-medium min-h-[100px]" placeholder="Answer" value={editingFaq.answer} onChange={e => setEditingFaq({...editingFaq, answer: e.target.value})} required />
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">저장</button><button type="button" onClick={() => setEditingFaq(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">저장</button><button type="button" onClick={() => setEditingFaq(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
           </form>
         </div>
       )}
@@ -631,7 +700,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
             updateState({ transportItems: newList });
             setEditingTransport(null);
             setShowSuccessModal(true);
-          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl">
+          }} className="bg-white rounded-[40px] w-full p-8 space-y-4 shadow-2xl scale-in-center">
             <h3 className="text-lg font-black">Transport Item Editor</h3>
             <select className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" value={editingTransport.category} onChange={e => setEditingTransport({...editingTransport, category: e.target.value as any})}>
               <option value="BUS">BUS</option><option value="TAXI">TAXI</option><option value="OTHER">OTHER</option>
@@ -639,7 +708,7 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Label (No. 88)" value={editingTransport.label} onChange={e => setEditingTransport({...editingTransport, label: e.target.value})} required />
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Destination" value={editingTransport.title} onChange={e => setEditingTransport({...editingTransport, title: e.target.value})} required />
             <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Duration/Cost" value={editingTransport.duration} onChange={e => setEditingTransport({...editingTransport, duration: e.target.value})} required />
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">저장</button><button type="button" onClick={() => setEditingTransport(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">저장</button><button type="button" onClick={() => setEditingTransport(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
           </form>
         </div>
       )}
@@ -662,8 +731,19 @@ const AdminDashboard: React.FC<Props> = ({ state, updateState, onLogout }) => {
                <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Pronunciation" value={editingPhrase.pronunciation} onChange={e => setEditingPhrase({...editingPhrase, pronunciation: e.target.value})} required />
                <input className="w-full p-4 bg-gray-50 border rounded-2xl text-sm font-bold" placeholder="Context Description" value={editingPhrase.description_en} onChange={e => setEditingPhrase({...editingPhrase, description_en: e.target.value})} required />
             </div>
-            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black">저장</button><button type="button" onClick={() => setEditingPhrase(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
+            <div className="flex gap-2 pt-4"><button type="submit" className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">저장</button><button type="button" onClick={() => setEditingPhrase(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black">취소</button></div>
           </form>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[40px] w-full max-w-xs p-8 flex flex-col items-center text-center shadow-2xl scale-in-center">
+            <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">✓</div>
+            <h3 className="text-xl font-black text-gray-900 mb-2">저장되었습니다.</h3>
+            <button onClick={() => setShowSuccessModal(false)} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-blue-100 tap-active">확인</button>
+          </div>
         </div>
       )}
     </div>
