@@ -1,0 +1,5 @@
+{
+  "name": "Gimpo Assembly Hall App",
+  "description": "A mobile-first, elegant web app for foreign students attending programs at the Gimpo Assembly Hall, featuring schedules, meal plans, and dormitory services.",
+  "requestFramePermissions": []
+}
