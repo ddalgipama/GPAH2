@@ -19,13 +19,12 @@ import ContactUs from './components/ContactUs';
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>('home');
-  const [activeDormId, setActiveDormId] = useState<string | null>(null);
+  const [activePageId, setActivePageId] = useState<string | null>(null);
   const [state, setState] = useState<AppState>(() => {
     try {
       const saved = localStorage.getItem('gimpo_app_state');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure all required keys from INITIAL_STATE are present
         return { 
           ...INITIAL_STATE, 
           ...parsed,
@@ -33,8 +32,10 @@ const App: React.FC = () => {
           events: Array.isArray(parsed.events) ? parsed.events : INITIAL_STATE.events,
           meals: Array.isArray(parsed.meals) ? parsed.meals : INITIAL_STATE.meals,
           faqs: Array.isArray(parsed.faqs) ? parsed.faqs : INITIAL_STATE.faqs,
+          faqCategories: Array.isArray(parsed.faqCategories) ? parsed.faqCategories : INITIAL_STATE.faqCategories,
           staff: Array.isArray(parsed.staff) ? parsed.staff : INITIAL_STATE.staff,
           reports: Array.isArray(parsed.reports) ? parsed.reports : INITIAL_STATE.reports,
+          gradSubmenus: Array.isArray(parsed.gradSubmenus) ? parsed.gradSubmenus : INITIAL_STATE.gradSubmenus,
         };
       }
     } catch (e) {
@@ -58,7 +59,6 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-    // Fallback if contentPage is missing
     const getSafePage = (id: string | null) => {
       if (!id) return { title: 'Not Found', blocks: [] };
       return state.contentPages[id] || { title: 'Not Found', blocks: [{ type: 'text', value: 'Content is under preparation.' }] };
@@ -76,40 +76,30 @@ const App: React.FC = () => {
       case 'gimpo-hall':
         return <GimpoHall state={state} onBack={() => navigateTo('home')} />;
       case 'dorm-services':
-        return <DormServices state={state} onBack={() => navigateTo('home')} onDetail={(id) => { setActiveDormId(id); navigateTo('dorm-detail'); }} />;
+        return <DormServices state={state} onBack={() => navigateTo('home')} onDetail={(id) => { setActivePageId(id); navigateTo('dorm-detail'); }} />;
       case 'dorm-detail':
-        const page = getSafePage(activeDormId);
+      case 'grad-detail':
+        const page = getSafePage(activePageId);
+        const backView = view === 'dorm-detail' ? 'dorm-services' : 'graduation';
         return (
           <div className="min-h-screen bg-white pb-20 overflow-y-auto no-scrollbar relative">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-20 shadow-sm">
-              <button onClick={() => navigateTo('dorm-services')} className="text-blue-600 font-medium flex items-center px-2 py-1 active:bg-blue-50 rounded-lg">
+              <button onClick={() => navigateTo(backView)} className="text-blue-600 font-medium flex items-center px-2 py-1 active:bg-blue-50 rounded-lg">
                 <span className="mr-1">←</span> Back
               </button>
               <h1 className="text-lg font-bold text-gray-900">{page.title}</h1>
               <div className="w-10"></div>
             </header>
             <div className="p-6 pt-8 space-y-6">
-              {page.blocks && page.blocks.length > 0 ? (
-                page.blocks.map((block, i) => (
-                  <div key={block.id || i} className="animate-in fade-in duration-500 slide-in-from-bottom-2">
-                    {block.type === 'text' ? (
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">{block.value}</p>
-                    ) : (
-                      block.value && (
-                        <img src={block.value} alt="content" className="rounded-3xl w-full object-cover shadow-xl border border-gray-100" />
-                      )
-                    )}
-                  </div>
-                ))
-              ) : (
-                // Legacy fallback
-                <>
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium" dangerouslySetInnerHTML={{ __html: page.content || '' }} />
-                  {page.images?.map((img, i) => (
-                    <img key={i} src={img} alt="content" className="rounded-3xl mt-6 w-full object-cover shadow-xl border border-gray-100" />
-                  ))}
-                </>
-              )}
+              {page.blocks.map((block) => (
+                <div key={block.id} className="animate-in fade-in duration-500 slide-in-from-bottom-2">
+                  {block.type === 'text' ? (
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">{block.value}</p>
+                  ) : (
+                    block.value && <img src={block.value} alt="content" className="rounded-3xl w-full object-cover shadow-xl border border-gray-100" />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -118,7 +108,7 @@ const App: React.FC = () => {
       case 'calendar':
         return <CalendarView state={state} onBack={() => navigateTo('home')} />;
       case 'graduation':
-        return <GraduationView state={state} updateState={updateState} onBack={() => navigateTo('home')} />;
+        return <GraduationView state={state} updateState={updateState} onBack={() => navigateTo('home')} onPageDetail={(id) => { setActivePageId(id); navigateTo('grad-detail'); }} />;
       case 'faq':
         return <FAQView state={state} onBack={() => navigateTo('home')} />;
       case 'explore-gimpo':

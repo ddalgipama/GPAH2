@@ -11,7 +11,8 @@ export type AppView =
   | 'contact-us' 
   | 'admin-login' 
   | 'admin-dashboard'
-  | 'dorm-detail';
+  | 'dorm-detail'
+  | 'grad-detail';
 
 export interface Event {
   date: string;
@@ -44,6 +45,12 @@ export interface FAQItem {
   order: number;
 }
 
+export interface FAQCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export interface StaffContact {
   id: string;
   name: string;
@@ -60,6 +67,7 @@ export interface Report {
   title: string;
   description: string;
   timestamp: string;
+  checked?: boolean;
 }
 
 export interface ContentBlock {
@@ -83,21 +91,36 @@ export interface ServiceMenu {
   desc: string;
 }
 
+export interface GradSubmenu {
+  id: string;
+  title: string;
+  title_en: string;
+  icon: string;
+  desc: string;
+  type: 'link' | 'page';
+}
+
 export interface AppState {
   headerLine1: string;
   headerLine2: string;
   termName: string;
   noticeMessage: string;
   hallAddress: string;
+  complexMapUrl: string;
+  nearbyMapUrl: string;
+  areaMapUrl: string;
+  transportationInfo: string;
   gimpoIntro: string;
   emergencyText: string;
   adminEmail: string;
   events: Event[];
   meals: Meal[];
   faqs: FAQItem[];
+  faqCategories: FAQCategory[];
   staff: StaffContact[];
   reports: Report[];
   serviceMenus: ServiceMenu[];
+  gradSubmenus: GradSubmenu[];
   contentPages: Record<string, ContentPage>;
   survey1: any[];
   survey2: any[];
