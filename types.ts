@@ -68,6 +68,8 @@ export interface Report {
   description: string;
   timestamp: string;
   checked?: boolean;
+  media?: string;
+  mediaType?: string;
 }
 
 export interface ContentBlock {
@@ -79,8 +81,6 @@ export interface ContentBlock {
 export interface ContentPage {
   title: string;
   blocks: ContentBlock[];
-  content?: string; // Legacy support
-  images?: string[]; // Legacy support
 }
 
 export interface ServiceMenu {
@@ -100,19 +100,50 @@ export interface GradSubmenu {
   type: 'link' | 'page';
 }
 
+export interface SurveyEntry {
+  room: string;
+  initials: string;
+  guests: number;
+  doubleRooms: number;
+  twinRooms: number;
+  notes: string;
+  timestamp: string;
+}
+
+export interface EssentialPhrase {
+  id: string;
+  text_ko: string;
+  text_en: string;
+  pronunciation: string;
+  description_en: string;
+  color: string;
+}
+
+export interface TransportItem {
+  id: string;
+  category: 'BUS' | 'TAXI' | 'OTHER';
+  label: string;
+  title: string;
+  duration: string;
+  color: string;
+}
+
 export interface AppState {
   headerLine1: string;
   headerLine2: string;
   termName: string;
   noticeMessage: string;
+  noticeId: string;
   hallAddress: string;
   complexMapUrl: string;
   nearbyMapUrl: string;
   areaMapUrl: string;
   transportationInfo: string;
-  gimpoIntro: string;
+  transportItems: TransportItem[];
   emergencyText: string;
   adminEmail: string;
+  adminPin: string;
+  hasNewReport: boolean;
   events: Event[];
   meals: Meal[];
   faqs: FAQItem[];
@@ -122,6 +153,12 @@ export interface AppState {
   serviceMenus: ServiceMenu[];
   gradSubmenus: GradSubmenu[];
   contentPages: Record<string, ContentPage>;
-  survey1: any[];
-  survey2: any[];
+  survey1: SurveyEntry[];
+  survey2: SurveyEntry[];
+  isSurvey2Open: boolean;
+  essentialPhrases: EssentialPhrase[];
+  googleSheetUrl: string;
+  gimpoIntro: string;
+  noGraduationThisTerm: boolean;
+  noGraduationMessage: string;
 }

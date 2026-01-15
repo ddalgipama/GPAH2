@@ -28,14 +28,7 @@ const App: React.FC = () => {
         return { 
           ...INITIAL_STATE, 
           ...parsed,
-          contentPages: { ...INITIAL_STATE.contentPages, ...(parsed.contentPages || {}) },
-          events: Array.isArray(parsed.events) ? parsed.events : INITIAL_STATE.events,
-          meals: Array.isArray(parsed.meals) ? parsed.meals : INITIAL_STATE.meals,
-          faqs: Array.isArray(parsed.faqs) ? parsed.faqs : INITIAL_STATE.faqs,
-          faqCategories: Array.isArray(parsed.faqCategories) ? parsed.faqCategories : INITIAL_STATE.faqCategories,
-          staff: Array.isArray(parsed.staff) ? parsed.staff : INITIAL_STATE.staff,
-          reports: Array.isArray(parsed.reports) ? parsed.reports : INITIAL_STATE.reports,
-          gradSubmenus: Array.isArray(parsed.gradSubmenus) ? parsed.gradSubmenus : INITIAL_STATE.gradSubmenus,
+          contentPages: { ...INITIAL_STATE.contentPages, ...(parsed.contentPages || {}) }
         };
       }
     } catch (e) {
@@ -68,11 +61,11 @@ const App: React.FC = () => {
       case 'home':
         return <Home state={state} onNavigate={navigateTo} />;
       case 'admin-login':
-        return <AdminLogin onLogin={() => { setAdminLoggedIn(true); navigateTo('admin-dashboard'); }} onBack={() => navigateTo('home')} />;
+        return <AdminLogin state={state} updateState={updateState} onLogin={() => { setAdminLoggedIn(true); navigateTo('admin-dashboard'); }} onBack={() => navigateTo('home')} />;
       case 'admin-dashboard':
         return adminLoggedIn 
           ? <AdminDashboard state={state} updateState={updateState} onLogout={() => { setAdminLoggedIn(false); navigateTo('home'); }} /> 
-          : <AdminLogin onLogin={() => { setAdminLoggedIn(true); navigateTo('admin-dashboard'); }} onBack={() => navigateTo('home')} />;
+          : <AdminLogin state={state} updateState={updateState} onLogin={() => { setAdminLoggedIn(true); navigateTo('admin-dashboard'); }} onBack={() => navigateTo('home')} />;
       case 'gimpo-hall':
         return <GimpoHall state={state} onBack={() => navigateTo('home')} />;
       case 'dorm-services':
@@ -82,21 +75,21 @@ const App: React.FC = () => {
         const page = getSafePage(activePageId);
         const backView = view === 'dorm-detail' ? 'dorm-services' : 'graduation';
         return (
-          <div className="min-h-screen bg-white pb-20 overflow-y-auto no-scrollbar relative">
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-20 shadow-sm">
-              <button onClick={() => navigateTo(backView)} className="text-blue-600 font-medium flex items-center px-2 py-1 active:bg-blue-50 rounded-lg">
+          <div className="flex-1 flex flex-col bg-white">
+            <header className="h-16 border-b flex items-center justify-between px-4 sticky top-0 bg-white/95 backdrop-blur-md z-20">
+              <button onClick={() => navigateTo(backView)} className="h-10 px-3 text-blue-600 font-bold flex items-center bg-blue-50 rounded-xl tap-active">
                 <span className="mr-1">←</span> Back
               </button>
-              <h1 className="text-lg font-bold text-gray-900">{page.title}</h1>
+              <h1 className="text-base font-black text-gray-900 truncate max-w-[200px]">{page.title}</h1>
               <div className="w-10"></div>
             </header>
-            <div className="p-6 pt-8 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 no-scrollbar">
               {page.blocks.map((block) => (
-                <div key={block.id} className="animate-in fade-in duration-500 slide-in-from-bottom-2">
+                <div key={block.id} className="animate-in fade-in duration-500">
                   {block.type === 'text' ? (
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">{block.value}</p>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap font-medium text-[15px]">{block.value}</p>
                   ) : (
-                    block.value && <img src={block.value} alt="content" className="rounded-3xl w-full object-cover shadow-xl border border-gray-100" />
+                    block.value && <img src={block.value} alt="content" className="rounded-[32px] w-full object-cover shadow-lg border border-gray-100" />
                   )}
                 </div>
               ))}
@@ -121,7 +114,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen relative shadow-2xl bg-white overflow-hidden flex flex-col">
+    <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden">
       {renderView()}
     </div>
   );
